@@ -8,7 +8,13 @@ import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import com.ctre.phoenix.motorcontrol.*;
-import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
+//import photonLib
+import org.photonvision.*;
+import org.photonvision.PhotonCamera;
+import org.photonvision.PhotonUtils;
+
+
+
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 // xbox controller imports
 import edu.wpi.first.wpilibj.Joystick;
@@ -26,6 +32,8 @@ public class Robot extends TimedRobot {
   private final SendableChooser<String> m_chooser = new SendableChooser<>();
   private Joystick xboxController = new Joystick(0);
   private TalonSRX motor = new TalonSRX(2);
+  private PhotonCamera camera = new PhotonCamera("photonvision");
+
   
  
 
@@ -38,6 +46,8 @@ public class Robot extends TimedRobot {
     m_chooser.setDefaultOption("Default Auto", kDefaultAuto);
     m_chooser.addOption("My Auto", kCustomAuto);
     SmartDashboard.putData("Auto choices", m_chooser);
+
+
   }
     
   
@@ -50,7 +60,10 @@ public class Robot extends TimedRobot {
    * SmartDashboard integrated updating.
    */
   @Override
-  public void robotPeriodic() {}
+  public void robotPeriodic() {
+
+
+  }
 
   /**
    * This autonomous (along with the chooser code above) shows how to select between different
@@ -67,6 +80,8 @@ public class Robot extends TimedRobot {
     m_autoSelected = m_chooser.getSelected();
     // m_autoSelected = SmartDashboard.getString("Auto Selector", kDefaultAuto);
     System.out.println("Auto selected: " + m_autoSelected);
+
+
   }
 
   /** This function is called periodically during autonomous. */
@@ -85,7 +100,9 @@ public class Robot extends TimedRobot {
 
   /** This function is called once when teleop is enabled. */
   @Override
-  public void teleopInit() {}
+  public void teleopInit() {
+
+  }
 
   /** This function is called periodically during operator control. */
   @Override
@@ -98,7 +115,7 @@ public class Robot extends TimedRobot {
 
      // Set the motor controller to the Y-axis value
      motor.set(ControlMode.PercentOutput, speed);
-   
+    
   }
 
   /** This function is called once when the robot is disabled. */
