@@ -9,7 +9,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import com.ctre.phoenix.motorcontrol.*;
 //import photonLib
-import org.photonvision.*;
+
 import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonUtils;
 
@@ -32,7 +32,9 @@ public class Robot extends TimedRobot {
   private final SendableChooser<String> m_chooser = new SendableChooser<>();
   private Joystick xboxController = new Joystick(0);
   private TalonSRX motor = new TalonSRX(2);
-  private PhotonCamera camera = new PhotonCamera("photonvision");
+
+  private PhotonCamera camera = new PhotonCamera("Camera1");
+
 
   
  
@@ -49,6 +51,12 @@ public class Robot extends TimedRobot {
 
 
   }
+  @Override
+  public void robotInit() {
+    camera= new PhotonCamera("Camera1"); 
+    
+  }  
+    
     
   
 
