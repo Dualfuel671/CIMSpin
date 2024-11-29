@@ -5,13 +5,14 @@
 package frc.robot;
 
 import edu.wpi.first.wpilibj.TimedRobot;
-import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import com.ctre.phoenix.motorcontrol.*;
 //import photonLib
-import org.photonvision.*;
+
 import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonUtils;
+
 
 
 
@@ -26,13 +27,11 @@ import edu.wpi.first.wpilibj.Joystick;
  * this project, you must also update the Main.java file in the project.
  */
 public class Robot extends TimedRobot {
-  private static final String kDefaultAuto = "Default";
-  private static final String kCustomAuto = "My Auto";
-  private String m_autoSelected;
-  private final SendableChooser<String> m_chooser = new SendableChooser<>();
+  
+  
   private Joystick xboxController = new Joystick(0);
   private TalonSRX motor = new TalonSRX(2);
-  private PhotonCamera camera = new PhotonCamera("photonvision");
+  private PhotonCamera camera; //= new PhotonCamera("photonvision");
 
   
  
@@ -43,10 +42,17 @@ public class Robot extends TimedRobot {
    * initialization code.
    */
   public Robot() {
-    m_chooser.setDefaultOption("Default Auto", kDefaultAuto);
-    m_chooser.addOption("My Auto", kCustomAuto);
-    SmartDashboard.putData("Auto choices", m_chooser);
+   
 
+  }
+
+  public void robotInit() {
+    //camera.setDriverMode(true);
+    //came  // Initialize the Talon SRX motor on CAN ID 1
+      motor = new TalonSRX(1);
+        
+    // Initialize the Photon camera (make sure to use the correct camera name)
+     camera = new PhotonCamera("photonvision"); // Replace with your camera namera.setLedMode(PhotonUtils.LedMode.kforceOn);
 
   }
     
@@ -61,25 +67,44 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void robotPeriodic() {
+    // Get the latest result from the camera
+   var result = camera.getAllUnreadResults();
+
+    // Check if there are any detected AprilTags
+    if (result.) {
+        // Get the first detected target (AprilTag)
+        var target = result.getBestTarget();
+
+        // Get the target's X position (horizontal offset)
+        double targetX = target.getYaw(); // This gives you the angle in degrees
+
+        // Determine motor speed based on target's X position
+        if (targetX > 0) {
+            // Target is to the right, spin motor counterclockwise
+            motor.set(ControlMode.PercentOutput, -0.5); // Adjust speed as necessary
+        } else if (targetX < 0) {
+            // Target is to the left, spin motor clockwise
+            motor.set(ControlMode.PercentOutput, 0.5); // Adjust speed as necessary
+        } else {
+            // Target is centered, stop the motor
+            motor.set(ControlMode.PercentOutput, 0);
+        }
+
+        // Optionally, display the target information on the SmartDashboard
+        SmartDashboard.putNumber("Target X", targetX);
+    } else {
+        // No targets detected, stop the motor
+        motor.set(ControlMode.PercentOutput, 0);
+    }
+}
 
 
-  }
 
-  /**
-   * This autonomous (along with the chooser code above) shows how to select between different
-   * autonomous modes using the dashboard. The sendable chooser code works with the Java
-   * SmartDashboard. If you prefer the LabVIEW Dashboard, remove all of the chooser code and
-   * uncomment the getString line to get the auto name from the text box below the Gyro
-   *
-   * <p>You can add additional auto modes by adding additional comparisons to the switch structure
-   * below with additional strings. If using the SendableChooser make sure to add them to the
-   * chooser code above as well.
-   */
+  
+
   @Override
   public void autonomousInit() {
-    m_autoSelected = m_chooser.getSelected();
-    // m_autoSelected = SmartDashboard.getString("Auto Selector", kDefaultAuto);
-    System.out.println("Auto selected: " + m_autoSelected);
+    
 
 
   }
@@ -87,15 +112,7 @@ public class Robot extends TimedRobot {
   /** This function is called periodically during autonomous. */
   @Override
   public void autonomousPeriodic() {
-    switch (m_autoSelected) {
-      case kCustomAuto:
-        // Put custom auto code here
-        break;
-      case kDefaultAuto:
-      default:
-        // Put default auto code here
-        break;
-    }
+  
   }
 
   /** This function is called once when teleop is enabled. */
@@ -141,6 +158,8 @@ public class Robot extends TimedRobot {
   /** This function is called periodically whilst in simulation. */
   @Override
   public void simulationPeriodic() {
+  }
 }
-}
+
+
 
