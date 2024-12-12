@@ -17,6 +17,8 @@ import org.photonvision.PhotonUtils;
 
 
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
+
+import edu.wpi.first.math.util.Units;
 // xbox controller imports
 import edu.wpi.first.wpilibj.Joystick;
 
@@ -49,10 +51,10 @@ public class Robot extends TimedRobot {
   public void robotInit() {
     //camera.setDriverMode(true);
     //came  // Initialize the Talon SRX motor on CAN ID 1
-      motor = new TalonSRX(1);
+      motor = new TalonSRX(2);
         
     // Initialize the Photon camera (make sure to use the correct camera name)
-     camera = new PhotonCamera("photonvision"); // Replace with your camera namera.setLedMode(PhotonUtils.LedMode.kforceOn);
+     camera = new PhotonCamera("Camera1"); // Replace with your camera namera.setLedMode(PhotonUtils.LedMode.kforceOn);
 
   }
     
@@ -67,22 +69,46 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void robotPeriodic() {
+    boolean targetVisible = false;
+    double targetYaw = 0.0;
+    double targetRange = 0.0;
     // Get the latest result from the camera
-   var result = camera.getAllUnreadResults();
-
-    // Check if there are any detected AprilTags
-    if (result.) {
-        // Get the first detected target (AprilTag)
-        var target = result.getBestTarget();
-
+   var results = camera.getAllUnreadResults();
+   // Check if there are any detected AprilTags 
+   if (!results.isEmpty()) {
+       // Camera processed a new frame since last
+       // Get the last one in the list.
+      var result = results.get(results.size() - 1);
+      // Check if there are any detected AprilTags
+      if (result.hasTargets()){
+          // At least one AprilTag was seen by the camera
+          for (var target : result.getTargets()) {        
+            if (target.getFiducialId() == 7) {
+                // Found Tag 7, record its information
+                targetYaw = target.getYaw();
+                targetRange =
+                                PhotonUtils.calculateDistanceToTargetMeters(
+                                        0.5, // Measured with a tape measure, or in CAD.
+                                        1.435, // From 2024 game manual for ID 7
+                                        Units.degreesToRadians(-30.0), // Measured with a protractor, or in CAD.
+                                        Units.degreesToRadians(target.getPitch()));
+                targetVisible = true;
+            }
+          }
+      }  else {
+        // No targets detected, stop the motor
+        motor.set(ControlMode.PercentOutput, 0);
+    }
+  }
+  
         // Get the target's X position (horizontal offset)
-        double targetX = target.getYaw(); // This gives you the angle in degrees
+        //double targetX = target.getYaw(); // This gives you the angle in degrees
 
         // Determine motor speed based on target's X position
-        if (targetX > 0) {
+        if (targetYaw > 0) {
             // Target is to the right, spin motor counterclockwise
             motor.set(ControlMode.PercentOutput, -0.5); // Adjust speed as necessary
-        } else if (targetX < 0) {
+        } else if (targetYaw < 0) {
             // Target is to the left, spin motor clockwise
             motor.set(ControlMode.PercentOutput, 0.5); // Adjust speed as necessary
         } else {
@@ -91,12 +117,10 @@ public class Robot extends TimedRobot {
         }
 
         // Optionally, display the target information on the SmartDashboard
-        SmartDashboard.putNumber("Target X", targetX);
-    } else {
-        // No targets detected, stop the motor
-        motor.set(ControlMode.PercentOutput, 0);
-    }
-}
+      SmartDashboard.putNumber("Target X", targetYaw);
+  }
+    
+
 
 
 
