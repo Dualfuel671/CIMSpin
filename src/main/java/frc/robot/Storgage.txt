@@ -1,0 +1,88 @@
+
+        // Get the target's X position (horizontal offset)
+        //double targetX = target.getYaw(); // This gives you the angle in degrees
+
+        // Determine motor speed based on target's X position
+        if (targetYaw > 0) {
+            // Target is to the right, spin motor counterclockwise
+            motor.set(ControlMode.PercentOutput, -0.5); // Adjust speed as necessary
+        } else if (targetYaw < 0) {
+            // Target is to the left, spin motor clockwise
+            motor.set(ControlMode.PercentOutput, 0.5); // Adjust speed as necessary
+        } else {
+            // Target is centered, stop the motor
+            motor.set(ControlMode.PercentOutput, 0);
+        }
+
+        @Override
+  public void robotPeriodic() {
+    boolean targetVisible = false;
+    double targetYaw = 0.0;
+    double targetRange = 0.0;
+    // Get the latest result from the camera
+   var results = camera.getAllUnreadResults();
+   // Check if there are any detected AprilTags 
+   if (!results.isEmpty()) {
+       // Camera processed a new frame since last
+       // Get the last one in the list.
+      var result = results.get(results.size() - 1);
+      // Check if there are any detected AprilTags
+      if (result.hasTargets()){
+          // At least one AprilTag was seen by the camera
+          for (var target : result.getTargets()) {        
+            if (target.getFiducialId() == 7) {
+                // Found Tag 7, record its information
+                targetYaw = target.getYaw();
+                targetRange =
+                                PhotonUtils.calculateDistanceToTargetMeters(
+                                        0.5, // Measured with a tape measure, or in CAD.
+                                        1.435, // From 2024 game manual for ID 7
+                                        Units.degreesToRadians(-30.0), // Measured with a protractor, or in CAD.
+                                        Units.degreesToRadians(target.getPitch()));
+                targetVisible = true;
+            }
+          }
+      } // else {
+        // No targets detected, stop the motor
+        //motor.set(ControlMode.PercentOutput, 0);
+    //}
+    }
+
+    //public void updateMotorSpeed() {
+      // Get the target's X position (horizontal offset)
+      //targetYaw = target.getYaw(); // This gives you the angle in degrees
+  
+      // Define a deadband
+      double deadband = 5.0; // degrees
+  
+      // Determine target speed based on target's X position
+      double targetSpeed = 0.0;
+      double currentSpeed = 0.0;
+  
+      if (Math.abs(targetYaw) < deadband) {
+          // Target is centered, stop the motor
+          targetSpeed = 0.0;
+      } else if (targetYaw > 0) {
+          // Target is to the right, spin motor counterclockwise
+          targetSpeed = -Constants.MAX_SPEED; // Adjust speed as necessary
+      } else {
+          // Target is to the left, spin motor clockwise
+          targetSpeed = Constants.MAX_SPEED; // Adjust speed as necessary
+      }
+  
+      // Smoothly transition to the target speed
+      if (currentSpeed < targetSpeed) {
+          currentSpeed += Constants.SMOOTHING_FACTOR;} // Ramp up
+      else if (currentSpeed > targetSpeed) {
+              currentSpeed = targetSpeed;} // Clamp to target speed
+          
+      else if (currentSpeed > targetSpeed) {
+          currentSpeed -= Constants.SMOOTHING_FACTOR;} // Ramp down
+      else if (currentSpeed < targetSpeed) {
+              currentSpeed = targetSpeed;} // Clamp to target speed
+          
+      
+  
+      // Set the motor speed
+      motor.set(ControlMode.PercentOutput, currentSpeed);
+  }
